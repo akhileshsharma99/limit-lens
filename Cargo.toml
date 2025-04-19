@@ -1,0 +1,12 @@
+[package]
+name = "limit-lens"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix-cors = "0.7.1"
+actix-web = "4.10.2"
+env_logger = "0.11.8"
+utoipa = { version = "5.3.1", features = ["actix_extras", "uuid", "chrono", "debug"] }
+utoipa-redoc = { version = "6.0.0", features = ["actix-web"] }
+utoipa-swagger-ui = { version = "9.0.1", features = ["actix-web", "vendored"] }
