@@ -37,7 +37,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: run
-          args: --bin generate_openapi -- --output ./openapi.json
+          args: --bin generate_openapi -- --output ./limit-lens.json
           
       - name: Generate Rust OpenAPI Client
         if: ${{ steps.release.outputs.release_created }}
