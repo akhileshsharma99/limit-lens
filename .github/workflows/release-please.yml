@@ -32,9 +32,35 @@ jobs:
           toolchain: stable
           override: true
           
-      - name: Publish to crates.io
+      - name: Generate OpenAPI Specification
         if: ${{ steps.release.outputs.release_created }}
         uses: actions-rs/cargo@v1
         with:
-          command: publish
-          args: --token ${{ secrets.CRATES_IO_TOKEN }} 
+          command: run
+          args: --bin generate_openapi -- --output ./openapi.json
+          
+      - name: Setup Node.js
+        if: ${{ steps.release.outputs.release_created }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          registry-url: 'https://registry.npmjs.org'
+          
+      - name: Generate OpenAPI Package
+        if: ${{ steps.release.outputs.release_created }}
+        run: |
+          npm install -g @openapitools/openapi-generator-cli
+          openapi-generator-cli generate -i ./openapi.json -g typescript-fetch -o ./openapi-client
+          cd ./openapi-client
+          # Set package name and version from the release
+          jq '.name = "limit-lens-client" | .version = "${{ steps.release.outputs.tag_name }}"' package.json > tmp.json && mv tmp.json package.json
+          npm install
+          npm run build
+          
+      - name: Publish OpenAPI Package
+        if: ${{ steps.release.outputs.release_created }}
+        run: |
+          cd ./openapi-client
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} 

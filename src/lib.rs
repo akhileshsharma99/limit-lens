@@ -3,6 +3,9 @@ use actix_web::get;
 use actix_web::middleware::Logger;
 use actix_web::{web, App, HttpServer};
 use env_logger::Env;
+use std::fs::File;
+use std::io::Write;
+use std::path::Path;
 use utoipa::{
     openapi::security::{ApiKey, ApiKeyValue, SecurityScheme},
     Modify, OpenApi,
@@ -22,7 +25,7 @@ mod tests;
         title = "Limit Lens API",
         description = "A simple API for testing and visualizing rate limiters in real-time. Monitor request throughput and see how your rate limiting algorithms perform under load.",
         contact(name = "Limit Lens", url = "", email = "sharmaninenine@gmail.com"),
-        version = "1.0.0"
+        version = env!("CARGO_PKG_VERSION")
     ),
     servers((url = "http://localhost:6969", description = "Local server")),
     paths(
@@ -63,6 +66,13 @@ impl Modify for SecurityAddon {
 #[get("/openapi.json")]
 pub async fn get_openapi_spec_handler() -> impl actix_web::Responder {
     web::Json(ApiDoc::openapi())
+}
+
+pub fn generate_and_save_openapi_spec(output_path: &str) -> std::io::Result<()> {
+    let spec = serde_json::to_string_pretty(&ApiDoc::openapi())?;
+    let mut file = File::create(Path::new(output_path))?;
+    file.write_all(spec.as_bytes())?;
+    Ok(())
 }
 
 pub fn main() -> std::io::Result<()> {
