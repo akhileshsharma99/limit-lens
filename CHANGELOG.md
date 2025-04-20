@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.7](https://github.com/akhileshsharma99/limit-lens/compare/v0.3.6...v0.3.7) (2025-04-20)
+
+
+### Bug Fixes
+
+* **ci:** updated publishing client path ([c5c340c](https://github.com/akhileshsharma99/limit-lens/commit/c5c340c06137996eb9dffb64058710059ffaf3ed))
+
 ## [0.3.6](https://github.com/akhileshsharma99/limit-lens/compare/v0.3.5...v0.3.6) (2025-04-20)
 
 
