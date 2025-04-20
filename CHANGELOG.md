@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.5](https://github.com/akhileshsharma99/limit-lens/compare/v0.3.4...v0.3.5) (2025-04-20)
+
+
+### Bug Fixes
+
+* updated output json name ([25780aa](https://github.com/akhileshsharma99/limit-lens/commit/25780aa15414e9d009018d041cfa24353cbcfdd2))
+
 ## [0.3.4](https://github.com/akhileshsharma99/limit-lens/compare/v0.3.3...v0.3.4) (2025-04-20)
 
 
