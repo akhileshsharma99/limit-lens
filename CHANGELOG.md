@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.6](https://github.com/akhileshsharma99/limit-lens/compare/v0.3.5...v0.3.6) (2025-04-20)
+
+
+### Bug Fixes
+
+* updated openapi.json location ([8652d8b](https://github.com/akhileshsharma99/limit-lens/commit/8652d8b5d3667a84cc48542a5069e27e6f74d5fe))
+
 ## [0.3.5](https://github.com/akhileshsharma99/limit-lens/compare/v0.3.4...v0.3.5) (2025-04-20)
 
 
