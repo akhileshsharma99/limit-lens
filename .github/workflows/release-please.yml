@@ -52,12 +52,7 @@ jobs:
         if: ${{ steps.release.outputs.release_created }}
         run: |
           sudo chown -R $USER:$USER ./limit-lens-client
-          
-      - name: Update license in Cargo.toml
-        working-directory: ./limit-lens-client
-        run: |
-          sed -i 's/license = ""/license = "MIT"/' Cargo.toml
-           
+
       - name: Create PR for client updates
         if: ${{ steps.release.outputs.release_created }}
         uses: peter-evans/create-pull-request@v5
