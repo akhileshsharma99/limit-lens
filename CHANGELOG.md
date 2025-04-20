@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.4.0](https://github.com/akhileshsharma99/limit-lens/compare/v0.3.7...v0.4.0) (2025-04-20)
+
+
+### Features
+
+* added dashboard to visualize all sessions and their metrics ([a555d50](https://github.com/akhileshsharma99/limit-lens/commit/a555d5095699422cf44182834bdbbae571e5d080))
+* added README to rust client ([b4d401a](https://github.com/akhileshsharma99/limit-lens/commit/b4d401ac09bb49e839cd1594e073dddad7eac31b))
+
+
+### Bug Fixes
+
+* **ci:** updated package name to limit-lens ([5b26f74](https://github.com/akhileshsharma99/limit-lens/commit/5b26f743e473a6af98328b8ef15c7417e0cf1e34))
+* updated location of openapi.json ([c51bc41](https://github.com/akhileshsharma99/limit-lens/commit/c51bc41b47f3ae51047fac614c50ffede0359240))
+
 ## [0.3.7](https://github.com/akhileshsharma99/limit-lens/compare/v0.3.6...v0.3.7) (2025-04-20)
 
 
