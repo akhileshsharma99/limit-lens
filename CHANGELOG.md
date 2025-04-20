@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/akhileshsharma99/limit-lens/compare/v0.3.0...v0.3.1) (2025-04-20)
+
+
+### Bug Fixes
+
+* **ci:** added --skip-validate-spec to docker openapi generator ([b36e6da](https://github.com/akhileshsharma99/limit-lens/commit/b36e6dadf7adc1132b017d2fd8f394cb401deb06))
+
 ## [0.3.0](https://github.com/akhileshsharma99/limit-lens/compare/v0.2.0...v0.3.0) (2025-04-20)
 
 
