@@ -45,13 +45,13 @@ jobs:
           docker run --rm -v "${PWD}:/local" openapitools/openapi-generator-cli generate \
             -i /local/limit-lens.json \
             -g rust \
-            -o /local/limit-lens-client \
+            -o /local/clients/rust \
             --skip-validate-spec
             
       - name: Fix file permissions
         if: ${{ steps.release.outputs.release_created }}
         run: |
-          sudo chown -R $USER:$USER ./limit-lens-client
+          sudo chown -R $USER:$USER ./clients/rust
 
       - name: Create PR for client updates
         if: ${{ steps.release.outputs.release_created }}

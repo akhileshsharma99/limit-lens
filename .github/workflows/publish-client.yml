@@ -29,6 +29,6 @@ jobs:
           override: true
           
       - name: Publish OpenAPI Rust Client
-        working-directory: ./limit-lens-client
+        working-directory: ./clients/rust
         run: |
           cargo publish --token ${{ secrets.CRATES_IO_TOKEN }} 
