@@ -6,7 +6,13 @@ edition = "2021"
 [dependencies]
 actix-cors = "0.7.1"
 actix-web = "4.10.2"
+chrono = { version = "0.4.40", features = ["serde"] }
 env_logger = "0.11.8"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tempfile = "3.9.0"
+tokio = { version = "1", features = ["full"] }
 utoipa = { version = "5.3.1", features = ["actix_extras", "uuid", "chrono", "debug"] }
 utoipa-redoc = { version = "6.0.0", features = ["actix-web"] }
 utoipa-swagger-ui = { version = "9.0.1", features = ["actix-web", "vendored"] }
+uuid = { version = "1.8.0", features = ["v4", "serde"] }

@@ -11,6 +11,10 @@ use utoipa_redoc::{Redoc, Servable};
 use utoipa_swagger_ui::SwaggerUi;
 
 mod routes;
+mod models;
+mod storage;
+#[cfg(test)]
+mod tests;
 
 #[derive(OpenApi)]
 #[openapi(
@@ -23,15 +27,20 @@ mod routes;
     servers((url = "http://localhost:6969", description = "Local server")),
     paths(
         routes::health::health_check,
+        routes::rate_test::create_test_session,
+        routes::rate_test::receive_test_request,
+        routes::rate_test::get_test_metrics,
     ),
     components(
         schemas(
-            
+            models::TestSession,
+            models::TestMetrics,
         )
     ),
     modifiers(&SecurityAddon),
     tags(
         (name = "Health", description = "Endpoint for checking the health of the service."),
+        (name = "Rate Test", description = "Endpoints for testing rate limiting algorithms."),
     )
 )]
 pub struct ApiDoc;
@@ -60,14 +69,23 @@ pub fn main() -> std::io::Result<()> {
     actix_web::rt::System::new().block_on(async move {
         env_logger::init_from_env(Env::default().default_filter_or("info"));
         
+        let rate_test_data = web::Data::new(storage::RateTestStorage::new());
+        
         HttpServer::new(move || {
         App::new()
             .wrap(Cors::permissive())
             .wrap(Logger::default())
             .wrap(Logger::new("%a %{User-Agent}i"))
+            .app_data(rate_test_data.clone())
             .service(Redoc::with_url("/redoc", ApiDoc::openapi()))
             .route("/", web::get().to(routes::health::health_check))
             .route("/health", web::get().to(routes::health::health_check))
+            .service(
+                web::scope("/api/test")
+                    .route("/session", web::post().to(routes::rate_test::create_test_session))
+                    .route("/request/{session_id}", web::get().to(routes::rate_test::receive_test_request))
+                    .route("/metrics/{session_id}", web::get().to(routes::rate_test::get_test_metrics))
+            )
             .service(
                 SwaggerUi::new("/swagger-ui/{_:.*}")
                     .url("/docs/openapi.json", ApiDoc::openapi()),
