@@ -1,4 +1,4 @@
-name: Release Please
+name: Release Please and Generate Client
 
 on:
   push:
@@ -48,8 +48,12 @@ jobs:
             -o /local/limit-lens-client \
             --skip-validate-spec
           
-      - name: Publish OpenAPI Rust Client
+      - name: Create PR for client updates
         if: ${{ steps.release.outputs.release_created }}
-        working-directory: ./limit-lens-client
-        run: |
-          cargo publish --token ${{ secrets.CRATES_IO_TOKEN }} 
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: update OpenAPI client"
+          title: "chore: update OpenAPI client for release ${{ steps.release.outputs.tag_name }}"
+          body: "This PR updates the OpenAPI client based on the latest API changes."
+          branch: "update-openapi-client" 
