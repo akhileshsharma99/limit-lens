@@ -43,7 +43,7 @@ jobs:
         if: ${{ steps.release.outputs.release_created }}
         run: |
           docker run --rm -v "${PWD}:/local" openapitools/openapi-generator-cli generate \
-            -i /local/openapi.json \
+            -i /local/limit-lens.json \
             -g rust \
             -o /local/limit-lens-client \
             --skip-validate-spec
