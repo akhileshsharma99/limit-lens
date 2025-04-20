@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0](https://github.com/akhileshsharma99/limit-lens/compare/v0.2.0...v0.3.0) (2025-04-20)
+
+
+### Features
+
+* **ci:** automate OpenAPI client generation and publishing ([36d0788](https://github.com/akhileshsharma99/limit-lens/commit/36d07883dce16f3c116826909c6f4fc668a9aa7e))
+
+
+### Bug Fixes
+
+* **ci:** use Docker for OpenAPI Rust client generation ([cce8de9](https://github.com/akhileshsharma99/limit-lens/commit/cce8de9d7c61f5c0036089672d612a05030a80ef))
+
 ## [0.2.0](https://github.com/akhileshsharma99/limit-lens/compare/v0.1.0...v0.2.0) (2025-04-20)
 
 
