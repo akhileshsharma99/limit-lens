@@ -42,6 +42,9 @@ cd limit-lens
 
 # Start the server with Docker Compose
 docker compose up -d
+
+# Stop the server after testing
+docker compose down
 ```
 ### Building from source
 
