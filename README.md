@@ -37,7 +37,7 @@ A simple API for testing and visualizing rate limiters in real-time. Monitor req
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/limit-lens.git
+git clone https://github.com/akhileshsharma99/limit-lens
 cd limit-lens
 
 # Start the server with Docker Compose
@@ -50,7 +50,7 @@ docker compose down
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/limit-lens.git
+git clone https://github.com/akhileshsharma99/limit-lens
 cd limit-lens
 
 # Build the project
