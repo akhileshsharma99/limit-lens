@@ -1,16 +1,6 @@
 use actix_web::{web, HttpResponse, Responder};
-use serde::Deserialize;
-use utoipa::ToSchema;
-
+use crate::models::{CreateSessionRequest, TestMetrics, TestRequestData, TestSession};
 use crate::storage::RateTestStorage;
-use crate::models::{TestSession, TestMetrics};
-
-/// Request for creating a new test session
-#[derive(Debug, Deserialize, ToSchema)]
-pub struct CreateSessionRequest {
-    /// Optional name for the test session
-    pub name: Option<String>,
-}
 
 /// Create a new test session
 ///
@@ -51,10 +41,11 @@ pub async fn create_test_session(
 pub async fn receive_test_request(
     storage: web::Data<RateTestStorage>,
     path: web::Path<String>,
+    request_data: web::Json<TestRequestData>,
 ) -> impl Responder {
     let session_id = path.into_inner();
     
-    if storage.record_request(&session_id) {
+    if storage.record_request(&session_id, &request_data.worker_id) {
         HttpResponse::Ok().finish()
     } else {
         HttpResponse::NotFound().body("Session not found")
@@ -86,4 +77,5 @@ pub async fn get_test_metrics(
         Some(metrics) => HttpResponse::Ok().json(metrics),
         None => HttpResponse::NotFound().body("Session not found"),
     }
-} 
+}
+

@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use uuid::Uuid;
 use chrono::{TimeZone, Utc};
 
-use crate::models::{TestMetrics, TestRequest, TestSession, TimeBucket};
+use crate::models::{TestMetrics, TestRequest, TestSession, TimeBucket, WorkerMetrics};
 
 /// Storage for rate test data
 pub struct RateTestStorage {
@@ -47,13 +47,14 @@ impl RateTestStorage {
     }
 
     /// Record a test request for a specific session
-    pub fn record_request(&self, session_id: &str) -> bool {
+    pub fn record_request(&self, session_id: &str, worker_id: &str) -> bool {
         if !self.session_exists(session_id) {
             return false;
         }
 
         let request = TestRequest {
             timestamp: Utc::now(),
+            worker_id: worker_id.to_string(),
         };
 
         // Store the request
@@ -91,6 +92,7 @@ impl RateTestStorage {
                 last_request_time: None,
                 requests_per_second: 0.0,
                 request_distribution: Vec::new(),
+                per_worker_metrics: HashMap::new(),
             });
         }
 
@@ -123,6 +125,46 @@ impl RateTestStorage {
 
         distribution_vec.sort_by(|a, b| a.timestamp.cmp(&b.timestamp));
 
+        // Calculate per-worker metrics
+        let mut per_worker_metrics = HashMap::new();
+        let mut worker_requests: HashMap<String, Vec<&TestRequest>> = HashMap::new();
+        
+        // Group requests by worker_id
+        for request in session_requests.iter() {
+            worker_requests
+                .entry(request.worker_id.clone())
+                .or_insert_with(Vec::new)
+                .push(request);
+        }
+        
+        // Calculate metrics for each worker
+        for (worker_id, requests) in worker_requests {
+            let worker_count = requests.len();
+            
+            // Calculate time distribution for this worker
+            let mut worker_distribution = HashMap::new();
+            for request in requests {
+                let timestamp = request.timestamp.timestamp();
+                let bucket_timestamp = Utc.timestamp_opt(timestamp, 0).single().unwrap();
+                
+                *worker_distribution.entry(bucket_timestamp).or_insert(0) += 1;
+            }
+            
+            // Convert to sorted vector
+            let mut worker_distribution_vec: Vec<TimeBucket> = worker_distribution
+                .into_iter()
+                .map(|(timestamp, count)| TimeBucket { timestamp, count })
+                .collect();
+                
+            worker_distribution_vec.sort_by(|a, b| a.timestamp.cmp(&b.timestamp));
+            
+            per_worker_metrics.insert(worker_id.clone(), WorkerMetrics {
+                worker_id,
+                request_count: worker_count,
+                request_distribution: worker_distribution_vec,
+            });
+        }
+
         Some(TestMetrics {
             session_id: session_id.to_string(),
             total_requests: session_requests.len(),
@@ -130,6 +172,7 @@ impl RateTestStorage {
             last_request_time: last_time,
             requests_per_second: rps,
             request_distribution: distribution_vec,
+            per_worker_metrics,
         })
     }
 } 
