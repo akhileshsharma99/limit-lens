@@ -29,5 +29,5 @@ RUN apt-get update -y; \
 
 COPY --from=builder /app/target/release/limit-lens /app/limit-lens
 
-EXPOSE 8000
+EXPOSE 6969
 ENTRYPOINT ["/app/limit-lens"]
