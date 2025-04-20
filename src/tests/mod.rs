@@ -19,10 +19,31 @@ mod rate_test {
         duration: u32,    // seconds
     }
 
-    // Helper function to set up and run a rate limit test
-    async fn run_rate_test(scenario: &AttackScenario) -> TestMetrics {
-        // Setup test app
+    #[actix_web::test]
+    async fn test_rate_limit_scenarios() {
+        // Define multiple test scenarios
+        let scenarios = vec![
+            AttackScenario {
+                name: "Low Rate Test",
+                rate: 10,
+                duration: 10,
+            },
+            AttackScenario {
+                name: "Medium Rate Test",
+                rate: 50,
+                duration: 10,
+            },
+            AttackScenario {
+                name: "High Rate Test",
+                rate: 200,
+                duration: 10,
+            },
+        ];
+
+        // Setup test app and server once for all scenarios
         let rate_test_data = web::Data::new(RateTestStorage::new());
+        
+        // Create the test service for API calls
         let app = test::init_service(
             App::new()
                 .app_data(rate_test_data.clone())
@@ -31,19 +52,8 @@ mod rate_test {
                 .route("/api/test/metrics/{session_id}", web::get().to(routes::rate_test::get_test_metrics)),
         )
         .await;
-
-        // Create a new test session
-        let create_req = test::TestRequest::post()
-            .uri("/api/test/session")
-            .set_json(&json!({"name": scenario.name}))
-            .to_request();
         
-        let session: TestSession = test::call_and_read_body_json(&app, create_req).await;
-        assert!(!session.id.is_empty());
-        assert_eq!(session.name, Some(scenario.name.to_string()));
-
-        // Server needs to be running for Vegeta to hit it
-        // For testing purposes, we'll start a test server on a specific port
+        // Start a single server for all test scenarios
         let server = actix_web::rt::spawn(
             actix_web::HttpServer::new(move || {
                 App::new()
@@ -56,73 +66,55 @@ mod rate_test {
             .unwrap()
             .run()
         );
-
+        
         // Give the server time to start
         time::sleep(Duration::from_millis(500)).await;
-
-        // Create a temporary file for vegeta targets
-        let mut targets_file = NamedTempFile::new().expect("Failed to create temporary file");
-        writeln!(
-            targets_file,
-            "GET http://localhost:6969/api/test/request/{}",
-            session.id
-        ).expect("Failed to write to targets file");
-        
-        // Run vegeta attack command
-        let output = Command::new("vegeta")
-            .args(&[
-                "attack", 
-                "-targets", targets_file.path().to_str().unwrap(),
-                "-rate", &format!("{}/s", scenario.rate),
-                "-duration", &format!("{}s", scenario.duration)
-            ])
-            .output()
-            .expect("Failed to execute vegeta attack command");
-        
-        assert!(output.status.success(), "Vegeta attack command failed");
-        
-        // Wait a bit to make sure all requests are processed
-        time::sleep(Duration::from_secs(2)).await;
-
-        // Get metrics 
-        let metrics_req = test::TestRequest::get()
-            .uri(&format!("/api/test/metrics/{}", session.id))
-            .to_request();
-        
-        let metrics: TestMetrics = test::call_and_read_body_json(&app, metrics_req).await;
-        
-        // Stop the server
-        server.abort();
-        
-        metrics
-    }
-
-    #[actix_web::test]
-    async fn test_rate_limit_scenarios() {
-        // Define multiple test scenarios
-        let scenarios = vec![
-            AttackScenario {
-                name: "Low Rate Test",
-                rate: 10,
-                duration: 5,
-            },
-            AttackScenario {
-                name: "Medium Rate Test",
-                rate: 50,
-                duration: 5,
-            },
-            AttackScenario {
-                name: "High Rate Test",
-                rate: 200,
-                duration: 5,
-            },
-        ];
 
         // Run each scenario and validate results
         for scenario in scenarios {
             println!("Running scenario: {}", scenario.name);
             
-            let metrics = run_rate_test(&scenario).await;
+            // Create a new test session for this scenario
+            let create_req = test::TestRequest::post()
+                .uri("/api/test/session")
+                .set_json(&json!({"name": scenario.name}))
+                .to_request();
+            
+            let session: TestSession = test::call_and_read_body_json(&app, create_req).await;
+            assert!(!session.id.is_empty());
+            assert_eq!(session.name, Some(scenario.name.to_string()));
+            
+            // Create a temporary file for vegeta targets
+            let mut targets_file = NamedTempFile::new().expect("Failed to create temporary file");
+            writeln!(
+                targets_file,
+                "GET http://localhost:6969/api/test/request/{}",
+                session.id
+            ).expect("Failed to write to targets file");
+            
+            // Run vegeta attack command
+            let output = Command::new("vegeta")
+                .args(&[
+                    "attack", 
+                    "-targets", targets_file.path().to_str().unwrap(),
+                    "-rate", &format!("{}/s", scenario.rate),
+                    "-duration", &format!("{}s", scenario.duration)
+                ])
+                .output()
+                .expect("Failed to execute vegeta attack command");
+            
+            assert!(output.status.success(), "Vegeta attack command failed");
+            
+            // Wait a bit to make sure all requests are processed
+            time::sleep(Duration::from_secs(2)).await;
+
+            // Get metrics 
+            let metrics_req = test::TestRequest::get()
+                .uri(&format!("/api/test/metrics/{}", session.id))
+                .to_request();
+            
+            let metrics: TestMetrics = test::call_and_read_body_json(&app, metrics_req).await;
+            
             let expected_requests = scenario.rate * scenario.duration;
             
             // Verify metrics
@@ -153,5 +145,8 @@ mod rate_test {
                    "Failed on scenario '{}': request distribution is empty", 
                    scenario.name);
         }
+        
+        // Stop the server after all scenarios are complete
+        server.abort();
     }
-} 
+}
