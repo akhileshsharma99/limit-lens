@@ -1,0 +1,276 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Limit Lens API",
+    "description": "A simple API for testing and visualizing rate limiters in real-time. Monitor request throughput and see how your rate limiting algorithms perform under load.",
+    "contact": {
+      "name": "Limit Lens",
+      "url": "",
+      "email": "sharmaninenine@gmail.com"
+    },
+    "license": {
+      "name": ""
+    },
+    "version": "0.3.3"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:6969",
+      "description": "Local server"
+    }
+  ],
+  "paths": {
+    "/api/test/metrics/{session_id}": {
+      "get": {
+        "tags": [
+          "Rate Test"
+        ],
+        "summary": "Get metrics for a test session",
+        "description": "Returns metrics and analysis of requests received for a session",
+        "operationId": "get_test_metrics",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "description": "The test session ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Metrics retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestMetrics"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Session not found"
+          }
+        }
+      }
+    },
+    "/api/test/request/{session_id}": {
+      "get": {
+        "tags": [
+          "Rate Test"
+        ],
+        "summary": "Receive a test request",
+        "description": "Records a request for the specified session ID",
+        "operationId": "receive_test_request",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "description": "The test session ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request recorded successfully"
+          },
+          "404": {
+            "description": "Session not found"
+          }
+        }
+      }
+    },
+    "/api/test/session": {
+      "post": {
+        "tags": [
+          "Rate Test"
+        ],
+        "summary": "Create a new test session",
+        "description": "Returns a unique session ID that can be used for rate limit testing",
+        "operationId": "create_test_session",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSessionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Session created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestSession"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Health Check",
+        "description": "Confirmation that the service can respond to requests",
+        "operationId": "health_check",
+        "responses": {
+          "200": {
+            "description": "Confirmation that the service can respond to requests and the version of the service",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CreateSessionRequest": {
+        "type": "object",
+        "description": "Request for creating a new test session",
+        "properties": {
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional name for the test session"
+          }
+        }
+      },
+      "TestMetrics": {
+        "type": "object",
+        "description": "Metrics for a rate limit test session",
+        "required": [
+          "session_id",
+          "total_requests",
+          "requests_per_second",
+          "request_distribution"
+        ],
+        "properties": {
+          "first_request_time": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Timestamp of the first request"
+          },
+          "last_request_time": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Timestamp of the last request"
+          },
+          "request_distribution": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeBucket"
+            },
+            "description": "Time-bucketed request counts (each entry is a 1-second window)"
+          },
+          "requests_per_second": {
+            "type": "number",
+            "format": "double",
+            "description": "Calculated requests per second"
+          },
+          "session_id": {
+            "type": "string",
+            "description": "ID of the test session"
+          },
+          "total_requests": {
+            "type": "integer",
+            "description": "Total number of requests received",
+            "minimum": 0
+          }
+        }
+      },
+      "TestSession": {
+        "type": "object",
+        "description": "Represents a test session for rate limit testing",
+        "required": [
+          "id",
+          "created_at"
+        ],
+        "properties": {
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the test session was created"
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the test session"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Name of the test session (optional)",
+            "example": "My Rate Limit Test"
+          }
+        }
+      },
+      "TimeBucket": {
+        "type": "object",
+        "description": "Time-bucketed request counts",
+        "required": [
+          "timestamp",
+          "count"
+        ],
+        "properties": {
+          "count": {
+            "type": "integer",
+            "description": "Number of requests in this 1-second window",
+            "minimum": 0
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Start time of this 1-second bucket"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "api_key": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Authorization"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Health",
+      "description": "Endpoint for checking the health of the service."
+    },
+    {
+      "name": "Rate Test",
+      "description": "Endpoints for testing rate limiting algorithms."
+    }
+  ]
+}
