@@ -39,28 +39,16 @@ jobs:
           command: run
           args: --bin generate_openapi -- --output ./openapi.json
           
-      - name: Setup Node.js
-        if: ${{ steps.release.outputs.release_created }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-          registry-url: 'https://registry.npmjs.org'
-          
-      - name: Generate OpenAPI Package
+      - name: Generate Rust OpenAPI Client
         if: ${{ steps.release.outputs.release_created }}
         run: |
-          npm install -g @openapitools/openapi-generator-cli
-          openapi-generator-cli generate -i ./openapi.json -g typescript-fetch -o ./openapi-client
-          cd ./openapi-client
-          # Set package name and version from the release
-          jq '.name = "limit-lens-client" | .version = "${{ steps.release.outputs.tag_name }}"' package.json > tmp.json && mv tmp.json package.json
-          npm install
-          npm run build
+          docker run --rm -v "${PWD}:/local" openapitools/openapi-generator-cli generate \
+            -i /local/openapi.json \
+            -g rust \
+            -o /local/limit-lens-client
           
-      - name: Publish OpenAPI Package
+      - name: Publish OpenAPI Rust Client
         if: ${{ steps.release.outputs.release_created }}
+        working-directory: ./limit-lens-client
         run: |
-          cd ./openapi-client
-          npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} 
+          cargo publish --token ${{ secrets.CRATES_IO_TOKEN }} 
