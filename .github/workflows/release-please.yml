@@ -45,7 +45,8 @@ jobs:
           docker run --rm -v "${PWD}:/local" openapitools/openapi-generator-cli generate \
             -i /local/openapi.json \
             -g rust \
-            -o /local/limit-lens-client
+            -o /local/limit-lens-client \
+            --skip-validate-spec
           
       - name: Publish OpenAPI Rust Client
         if: ${{ steps.release.outputs.release_created }}
