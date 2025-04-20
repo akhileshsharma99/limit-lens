@@ -37,13 +37,13 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: run
-          args: --bin generate_openapi -- --output ./limit-lens.json
+          args: --bin generate_openapi -- --output ./api/spec/openapi.json
           
       - name: Generate Rust OpenAPI Client
         if: ${{ steps.release.outputs.release_created }}
         run: |
           docker run --rm -v "${PWD}:/local" openapitools/openapi-generator-cli generate \
-            -i /local/limit-lens.json \
+            -i /local/api/spec/openapi.json \
             -g rust \
             -o /local/clients/rust \
             --skip-validate-spec \
