@@ -1,5 +1,5 @@
 [package]
-name = "openapi"
+name = "limit-lens"
 version = "0.3.7"
 authors = ["sharmaninenine@gmail.com"]
 description = "A simple API for testing and visualizing rate limiters in real-time. Monitor request throughput and see how your rate limiting algorithms perform under load."

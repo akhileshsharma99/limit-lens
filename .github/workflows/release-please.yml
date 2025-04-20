@@ -46,8 +46,9 @@ jobs:
             -i /local/limit-lens.json \
             -g rust \
             -o /local/clients/rust \
-            --skip-validate-spec
-            
+            --skip-validate-spec \
+            --package-name=limit-lens
+
       - name: Fix file permissions
         if: ${{ steps.release.outputs.release_created }}
         run: |
