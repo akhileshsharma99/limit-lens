@@ -5,7 +5,7 @@
 
 ### Bug Fixes
 
-* **ci:** added license to Cargot.toml ([6283629](https://github.com/akhileshsharma99/limit-lens/commit/6283629d5ccb4e35d63e65c15fc66ca8cdf4b103))
+* **ci:** added license to Cargo.toml for the generated client ([6283629](https://github.com/akhileshsharma99/limit-lens/commit/6283629d5ccb4e35d63e65c15fc66ca8cdf4b103))
 
 ## [0.3.3](https://github.com/akhileshsharma99/limit-lens/compare/v0.3.2...v0.3.3) (2025-04-20)
 
