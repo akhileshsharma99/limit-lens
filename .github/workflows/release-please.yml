@@ -47,6 +47,11 @@ jobs:
             -g rust \
             -o /local/limit-lens-client \
             --skip-validate-spec
+            
+      - name: Fix file permissions
+        if: ${{ steps.release.outputs.release_created }}
+        run: |
+          sudo chown -R $USER:$USER ./limit-lens-client
           
       - name: Create PR for client updates
         if: ${{ steps.release.outputs.release_created }}
