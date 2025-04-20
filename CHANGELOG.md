@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/akhileshsharma99/limit-lens/compare/v0.3.1...v0.3.2) (2025-04-20)
+
+
+### Bug Fixes
+
+* **ci:** resolve client publishing failure due to uncommitted files ([a38924a](https://github.com/akhileshsharma99/limit-lens/commit/a38924a920f112d13165182559572861e83015c0))
+
 ## [0.3.1](https://github.com/akhileshsharma99/limit-lens/compare/v0.3.0...v0.3.1) (2025-04-20)
 
 
