@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.3](https://github.com/akhileshsharma99/limit-lens/compare/v0.3.2...v0.3.3) (2025-04-20)
+
+
+### Bug Fixes
+
+* **ci:** resolve permission issues in client generation workflow ([9c1d14d](https://github.com/akhileshsharma99/limit-lens/commit/9c1d14db12cae1e22d1d18d30b0a994000ed1130))
+
 ## [0.3.2](https://github.com/akhileshsharma99/limit-lens/compare/v0.3.1...v0.3.2) (2025-04-20)
 
 
