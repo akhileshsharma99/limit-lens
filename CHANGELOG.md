@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/akhileshsharma99/limit-lens/compare/v0.4.0...v0.5.0) (2025-04-20)
+
+
+### Features
+
+* added docker support ([8b537cd](https://github.com/akhileshsharma99/limit-lens/commit/8b537cd1632f5a3cde3f8d2c143820bad59d45a4))
+
 ## [0.4.0](https://github.com/akhileshsharma99/limit-lens/compare/v0.3.7...v0.4.0) (2025-04-20)
 
 
