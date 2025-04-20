@@ -53,6 +53,11 @@ jobs:
         run: |
           sudo chown -R $USER:$USER ./limit-lens-client
           
+      - name: Update license in Cargo.toml
+        working-directory: ./limit-lens-client
+        run: |
+          sed -i 's/license = ""/license = "MIT"/' Cargo.toml
+           
       - name: Create PR for client updates
         if: ${{ steps.release.outputs.release_created }}
         uses: peter-evans/create-pull-request@v5
@@ -61,4 +66,5 @@ jobs:
           commit-message: "chore: update OpenAPI client"
           title: "chore: update OpenAPI client for release ${{ steps.release.outputs.tag_name }}"
           body: "This PR updates the OpenAPI client based on the latest API changes."
-          branch: "update-openapi-client" 
+          branch: "update-openapi-client"
+          
