@@ -33,6 +33,8 @@ mod tests;
         routes::rate_test::create_test_session,
         routes::rate_test::receive_test_request,
         routes::rate_test::get_test_metrics,
+        routes::rate_test::get_all_sessions,
+        routes::rate_test::metrics_dashboard,
     ),
     components(
         schemas(
@@ -90,9 +92,11 @@ pub fn main() -> std::io::Result<()> {
             .service(Redoc::with_url("/redoc", ApiDoc::openapi()))
             .route("/", web::get().to(routes::health::health_check))
             .route("/health", web::get().to(routes::health::health_check))
+            .route("/dashboard", web::get().to(routes::rate_test::metrics_dashboard))
             .service(
                 web::scope("/api/test")
                     .route("/session", web::post().to(routes::rate_test::create_test_session))
+                    .route("/sessions", web::get().to(routes::rate_test::get_all_sessions))
                     .route("/request/{session_id}", web::get().to(routes::rate_test::receive_test_request))
                     .route("/metrics/{session_id}", web::get().to(routes::rate_test::get_test_metrics))
             )

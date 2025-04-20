@@ -118,7 +118,22 @@ impl RateTestStorage {
         // Convert to sorted vector
         let mut distribution_vec: Vec<TimeBucket> = distribution
             .into_iter()
-            .map(|(timestamp, count)| TimeBucket { timestamp, count })
+            .map(|(timestamp, count)| {
+                // Calculate per-bucket rate limit
+                let bucket_rate_limit = if let Some(first) = first_time {
+                    let duration = timestamp.signed_duration_since(first);
+                    let seconds = duration.num_seconds().max(1) as f64;
+                    session_requests.len() as f64 / seconds
+                } else {
+                    0.0
+                };
+                
+                TimeBucket { 
+                    timestamp, 
+                    count, 
+                    rate_limit: bucket_rate_limit
+                }
+            })
             .collect();
 
         distribution_vec.sort_by(|a, b| a.timestamp.cmp(&b.timestamp));
@@ -131,5 +146,11 @@ impl RateTestStorage {
             requests_per_second: rps,
             request_distribution: distribution_vec,
         })
+    }
+
+    /// Get all active sessions
+    pub fn get_all_sessions(&self) -> Vec<TestSession> {
+        let sessions = self.sessions.lock().unwrap();
+        sessions.values().cloned().collect()
     }
 } 

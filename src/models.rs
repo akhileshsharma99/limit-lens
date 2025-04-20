@@ -38,6 +38,8 @@ pub struct TimeBucket {
     pub timestamp: DateTime<Utc>,
     /// Number of requests in this 1-second window
     pub count: usize,
+    /// Calculated rate limit of the session at this time (requests/second)
+    pub rate_limit: f64,
 }
 
 /// Represents a request received during testing

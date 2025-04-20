@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Limit Lens Dashboard</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --primary-light: #4895ef;
+            --primary-dark: #3f37c9;
+            --dark-bg: #1a1a2e;
+            --dark-surface: #16213e;
+            --dark-surface-hover: #1b2542;
+            --light-bg: #f8f9fa;
+            --light-surface: #ffffff;
+            --text-light: #ffffff;
+            --text-dark: #212529;
+            --text-muted: #6c757d;
+            --border-radius: 10px;
+            --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--light-bg);
+            display: flex;
+            min-height: 100vh;
+            color: var(--text-dark);
+        }
+
+        .sidebar {
+            width: 280px;
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            padding: 24px;
+            overflow-y: auto;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+        }
+
+        .sidebar h2 {
+            margin-top: 0;
+            margin-bottom: 24px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .refresh-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .refresh-button:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .auto-refresh {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .auto-refresh input[type="checkbox"] {
+            accent-color: var(--primary-color);
+            width: 16px;
+            height: 16px;
+        }
+
+        .sidebar h3 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .session-item {
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            background-color: var(--dark-surface);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            border-left: 3px solid transparent;
+        }
+
+        .session-item:hover {
+            background-color: var(--dark-surface-hover);
+            transform: translateX(2px);
+        }
+
+        .session-item.active {
+            background-color: var(--dark-surface-hover);
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: var(--text-dark);
+            margin-top: 0;
+            margin-bottom: 24px;
+            font-weight: 600;
+            font-size: 1.8rem;
+            letter-spacing: -0.5px;
+        }
+
+        .session-card {
+            background: var(--light-surface);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+        }
+
+        .session-card h2 {
+            margin-top: 0;
+            margin-bottom: 16px;
+            font-weight: 600;
+            font-size: 1.5rem;
+            color: var(--text-dark);
+        }
+
+        .session-card p {
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 20px;
+            margin-top: 24px;
+        }
+
+        .metric {
+            background: var(--light-bg);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .metric:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--box-shadow);
+        }
+
+        .metric strong {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric span {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .no-sessions {
+            padding: 30px;
+            text-align: center;
+            background: var(--light-surface);
+            border-radius: var(--border-radius);
+            color: var(--text-muted);
+            font-size: 1rem;
+            box-shadow: var(--box-shadow);
+        }
+
+        .session-details {
+            display: none;
+        }
+
+        /* Dark mode styles */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #121212;
+                color: var(--text-light);
+            }
+
+            .main-content {
+                background-color: #121212;
+            }
+
+            .session-card {
+                background: #1e1e1e;
+                color: var(--text-light);
+            }
+
+            .session-card h2 {
+                color: var(--text-light);
+            }
+
+            .metric {
+                background: #252525;
+                border: 1px solid #333;
+            }
+
+            .no-sessions {
+                background: #1e1e1e;
+                color: #aaa;
+            }
+
+            h1 {
+                color: var(--text-light);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <h2>Limit Lens</h2>
+        <div class="sidebar-actions">
+            <button id="refresh-button" class="refresh-button">Refresh</button>
+            <div class="auto-refresh">
+                <input type="checkbox" id="auto-refresh" checked>
+                <label for="auto-refresh">Auto</label>
+            </div>
+        </div>
+        <h3>Active Sessions</h3>
+        <div id="session-list">
+            <div class="no-sessions">Loading sessions...</div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <h1>Session Details</h1>
+            <div id="session-details">
+                <div class="no-sessions">Select a session from the sidebar</div>
+            </div>
+            <div id="distribution-chart-container" style="margin-top: 30px; display: none;">
+                <div class="session-card">
+                    <h2>Request Distribution</h2>
+                    <canvas id="distribution-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+
+    <script>
+        let activeSessionId = null;
+        let refreshInterval = null;
+        const REFRESH_INTERVAL = 500; // ms
+        let distributionChart = null;
+
+        // Fetch all active sessions
+        async function fetchSessions() {
+            try {
+                const response = await fetch('/api/test/sessions');
+                if (!response.ok) throw new Error('Failed to fetch sessions');
+                return await response.json();
+            } catch (error) {
+                console.error('Error fetching sessions:', error);
+                return [];
+            }
+        }
+
+        // Fetch metrics for a specific session
+        async function fetchMetrics(sessionId) {
+            try {
+                const response = await fetch(`/api/test/metrics/${sessionId}`);
+                if (!response.ok) throw new Error(`Failed to fetch metrics for session ${sessionId}`);
+                return await response.json();
+            } catch (error) {
+                console.error(`Error fetching metrics for session ${sessionId}:`, error);
+                return null;
+            }
+        }
+
+        // Update the sidebar with session list
+        function updateSessionList(sessions) {
+            const sessionListContainer = document.getElementById('session-list');
+
+            if (sessions.length === 0) {
+                sessionListContainer.innerHTML = '<div class="no-sessions">No active sessions found</div>';
+                return;
+            }
+
+            let listHTML = '';
+            sessions.forEach(session => {
+                const isActive = session.id === activeSessionId;
+                listHTML += `
+                    <div class="session-item ${isActive ? 'active' : ''}" 
+                         data-session-id="${session.id}" 
+                         onclick="selectSession('${session.id}')">
+                        <div style="font-weight: 500;">${session.name || 'Unnamed Session'}</div>
+                        <div style="font-size: 12px; opacity: 0.7; margin-top: 4px;">ID: ${session.id.substring(0, 8)}...</div>
+                    </div>
+                `;
+            });
+
+            sessionListContainer.innerHTML = listHTML;
+        }
+
+        // Create or update session details
+        function updateSessionDetails(session, metrics) {
+            const detailsContainer = document.getElementById('session-details');
+            const chartContainer = document.getElementById('distribution-chart-container');
+
+            // Create card content
+            let content = `
+                <div class="session-card">
+                    <h2>${session.name || 'Unnamed Session'}</h2>
+                    <p>Session ID: ${session.id}</p>
+                    <p>Created: ${new Date(session.created_at).toLocaleString()}</p>
+            `;
+
+            // Add metrics if available
+            if (metrics) {
+                content += `
+                    <div class="metrics">
+                        <div class="metric">
+                            <strong>Total Requests</strong>
+                            <span>${metrics.total_requests}</span>
+                        </div>
+                        <div class="metric">
+                            <strong>Requests/Second</strong>
+                            <span>${metrics.requests_per_second.toFixed(2)}</span>
+                        </div>
+                        <div class="metric">
+                            <strong>First Request</strong>
+                            <span>${metrics.first_request_time ? new Date(metrics.first_request_time).toLocaleString() : 'N/A'}</span>
+                        </div>
+                        <div class="metric">
+                            <strong>Last Request</strong>
+                            <span>${metrics.last_request_time ? new Date(metrics.last_request_time).toLocaleString() : 'N/A'}</span>
+                        </div>
+                    </div>
+                `;
+
+                // Show chart container if we have distribution data
+                if (metrics.request_distribution && metrics.request_distribution.length > 0) {
+                    chartContainer.style.display = 'block';
+                    renderDistributionChart(metrics.request_distribution);
+                } else {
+                    chartContainer.style.display = 'none';
+                }
+            } else {
+                content += `<p>No metrics available yet</p>`;
+                chartContainer.style.display = 'none';
+            }
+
+            content += `</div>`;
+            detailsContainer.innerHTML = content;
+        }
+
+        // Render the chart with bucket data
+        function renderDistributionChart(buckets) {
+            const ctx = document.getElementById('distribution-chart').getContext('2d');
+
+            // Prepare data
+            const labels = buckets.map(b => new Date(b.timestamp));
+            const countData = buckets.map(b => b.count);
+            const rateLimitData = buckets.map(b => b.rate_limit);
+
+            if (!distributionChart) {
+                // Create new chart only if it doesn't exist
+                distributionChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Request Count',
+                                data: countData,
+                                backgroundColor: 'rgba(67, 97, 238, 0.7)',
+                                borderColor: 'rgba(67, 97, 238, 1)',
+                                borderWidth: 1,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: 'Rate Limit (req/s)',
+                                data: rateLimitData,
+                                type: 'line',
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                borderWidth: 2,
+                                fill: false,
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        scales: {
+                            x: {
+                                type: 'time',
+                                time: {
+                                    unit: 'second',
+                                    displayFormats: {
+                                        second: 'HH:mm:ss'
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Time'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Request Count'
+                                }
+                            },
+                            y1: {
+                                position: 'right',
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Rate Limit (req/s)'
+                                },
+                                grid: {
+                                    drawOnChartArea: false
+                                }
+                            }
+                        },
+                        animation: {
+                            duration: 300
+                        }
+                    }
+                });
+            } else {
+                // Update existing chart with new data
+                distributionChart.data.labels = labels;
+                distributionChart.data.datasets[0].data = countData;
+                distributionChart.data.datasets[1].data = rateLimitData;
+                distributionChart.update('none'); // Update without animation for smoother transitions
+            }
+        }
+
+        // Handle session selection
+        function selectSession(sessionId) {
+            activeSessionId = sessionId;
+            refreshSessionDetails();
+
+            // Update active class in sidebar
+            document.querySelectorAll('.session-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.sessionId === sessionId) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        // Refresh details for the active session
+        async function refreshSessionDetails() {
+            if (!activeSessionId) return;
+
+            const sessions = await fetchSessions();
+            const session = sessions.find(s => s.id === activeSessionId);
+
+            if (session) {
+                const metrics = await fetchMetrics(session.id);
+                updateSessionDetails(session, metrics);
+            } else {
+                // Session no longer exists, reset active session
+                activeSessionId = null;
+                document.getElementById('session-details').innerHTML =
+                    '<div class="no-sessions">Select a session from the sidebar</div>';
+            }
+        }
+
+        // Update dashboard with all sessions
+        async function updateDashboard() {
+            const sessions = await fetchSessions();
+            updateSessionList(sessions);
+
+            // If we have sessions but no active session, select the first one
+            if (sessions.length > 0 && !activeSessionId) {
+                selectSession(sessions[0].id);
+            } else if (activeSessionId) {
+                refreshSessionDetails();
+            }
+        }
+
+        // Toggle auto-refresh
+        function toggleAutoRefresh() {
+            const autoRefreshCheckbox = document.getElementById('auto-refresh');
+
+            if (autoRefreshCheckbox.checked) {
+                startAutoRefresh();
+            } else {
+                stopAutoRefresh();
+            }
+        }
+
+        // Start auto-refresh
+        function startAutoRefresh() {
+            if (refreshInterval) return;
+            refreshInterval = setInterval(updateDashboard, REFRESH_INTERVAL);
+        }
+
+        // Stop auto-refresh
+        function stopAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+            }
+        }
+
+        // Initialize the dashboard
+        function initDashboard() {
+            // Add event listeners
+            document.getElementById('refresh-button').addEventListener('click', updateDashboard);
+            document.getElementById('auto-refresh').addEventListener('change', toggleAutoRefresh);
+
+            // Initial dashboard update
+            updateDashboard();
+
+            // Start auto-refresh if checkbox is checked
+            if (document.getElementById('auto-refresh').checked) {
+                startAutoRefresh();
+            }
+        }
+
+        // Initialize when the page loads
+        window.onload = initDashboard;
+    </script>
+</body>
+
+</html>

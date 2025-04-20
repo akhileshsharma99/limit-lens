@@ -86,4 +86,38 @@ pub async fn get_test_metrics(
         Some(metrics) => HttpResponse::Ok().json(metrics),
         None => HttpResponse::NotFound().body("Session not found"),
     }
+}
+
+/// Get all active test sessions
+///
+/// Returns a list of all active test sessions
+#[utoipa::path(
+    get,
+    path = "/api/test/sessions",
+    responses(
+        (status = 200, description = "Active sessions retrieved successfully", body = Vec<TestSession>),
+    ),
+    tag = "Rate Test"
+)]
+pub async fn get_all_sessions(
+    storage: web::Data<RateTestStorage>,
+) -> impl Responder {
+    let sessions = storage.get_all_sessions();
+    HttpResponse::Ok().json(sessions)
+}
+
+/// Web interface for viewing live metrics
+///
+/// Serves an HTML page that displays live metrics for all active sessions
+#[utoipa::path(
+    get,
+    path = "/dashboard",
+    responses(
+        (status = 200, description = "Dashboard HTML page")
+    ),
+    tag = "Rate Test"
+)]
+pub async fn metrics_dashboard() -> impl Responder {
+    let html = include_str!("../../static/dashboard.html");
+    HttpResponse::Ok().content_type("text/html").body(html)
 } 
