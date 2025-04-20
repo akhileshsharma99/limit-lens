@@ -3,6 +3,7 @@ name = "limit-lens"
 version = "0.3.4"
 edition = "2021"
 default-run = "limit-lens"
+license = "MIT"
 
 [dependencies]
 actix-cors = "0.7.1"
