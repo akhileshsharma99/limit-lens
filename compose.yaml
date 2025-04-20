@@ -1,0 +1,7 @@
+services:
+  limit-lens:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "6969:6969"
