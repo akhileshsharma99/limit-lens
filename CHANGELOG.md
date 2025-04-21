@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.6.0](https://github.com/akhileshsharma99/limit-lens/compare/v0.5.0...v0.6.0) (2025-04-21)
+
+
+### Features
+
+* upload and download sessions ([1f6c76b](https://github.com/akhileshsharma99/limit-lens/commit/1f6c76b93b6d4a933018b2fc040d77d73e888d86))
+
+
+### Bug Fixes
+
+* removed unnecessary build.rs file ([b3d2520](https://github.com/akhileshsharma99/limit-lens/commit/b3d2520002848b8224a22ca93699ddf7800c53f1))
+
 ## [0.5.0](https://github.com/akhileshsharma99/limit-lens/compare/v0.4.0...v0.5.0) (2025-04-20)
 
 
