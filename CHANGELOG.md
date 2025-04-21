@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/akhileshsharma99/limit-lens/compare/v0.6.0...v0.6.1) (2025-04-21)
+
+
+### Bug Fixes
+
+* update README with repository link and proper capitalization ([d785bc5](https://github.com/akhileshsharma99/limit-lens/commit/d785bc54403e94ed5da0d0672cf620339cafebd3))
+
 ## [0.6.0](https://github.com/akhileshsharma99/limit-lens/compare/v0.5.0...v0.6.0) (2025-04-21)
 
 
