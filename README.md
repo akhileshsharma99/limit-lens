@@ -22,6 +22,7 @@ A simple API for testing and visualizing rate limiters in real-time. Monitor req
     - [Running the tests](#running-the-tests)
   - [License](#license)
   - [Contributing](#contributing)
+  - [Roadmap](#roadmap)
 
 ## Features
 
@@ -185,3 +186,7 @@ This project is licensed under the [MIT License](./LICENSE).
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+## Roadmap
+
+- [ ] **Session Activity Detection**: Track active vs inactive session periods to provide more accurate metrics.
