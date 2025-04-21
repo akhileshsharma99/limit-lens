@@ -218,6 +218,29 @@
             display: none;
         }
 
+        .action-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: var(--transition);
+            display: inline-block;
+            text-align: center;
+        }
+
+        .action-button:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .upload-btn {
+            background-color: var(--primary-light);
+        }
+
         /* Dark mode styles */
         @media (prefers-color-scheme: dark) {
             body {
@@ -259,7 +282,14 @@
     <div class="sidebar">
         <h2>Limit Lens</h2>
         <div class="sidebar-actions">
-            <button id="refresh-button" class="refresh-button">Refresh</button>
+            <div style="display: flex; gap: 8px;">
+                <button id="refresh-button" class="refresh-button">Refresh</button>
+                <label class="refresh-button upload-btn">
+                    Upload
+                    <input type="file" id="upload-input" accept=".json" style="display: none;"
+                        onchange="uploadSession(event)">
+                </label>
+            </div>
             <div class="auto-refresh">
                 <input type="checkbox" id="auto-refresh" checked>
                 <label for="auto-refresh">Auto</label>
@@ -298,17 +328,46 @@
         // Fetch all active sessions
         async function fetchSessions() {
             try {
+                // Get sessions from server
                 const response = await fetch('/api/test/sessions');
                 if (!response.ok) throw new Error('Failed to fetch sessions');
-                return await response.json();
+                const serverSessions = await response.json();
+
+                // Get locally stored sessions from localStorage
+                const localSessions = getLocalSessions();
+
+                // Merge server sessions with local sessions
+                return [...serverSessions, ...localSessions];
             } catch (error) {
                 console.error('Error fetching sessions:', error);
+
+                // If server request fails, return at least local sessions
+                return getLocalSessions();
+            }
+        }
+
+        // Get local sessions from localStorage
+        function getLocalSessions() {
+            try {
+                const localSessionsJson = localStorage.getItem('importedSessions');
+                return localSessionsJson ? JSON.parse(localSessionsJson) : [];
+            } catch (error) {
+                console.error('Error reading local sessions:', error);
                 return [];
             }
         }
 
         // Fetch metrics for a specific session
         async function fetchMetrics(sessionId) {
+            // First check if it's a local session
+            const localSessions = getLocalSessions();
+            const localSession = localSessions.find(s => s.id === sessionId);
+
+            if (localSession && localSession.metrics) {
+                return localSession.metrics;
+            }
+
+            // If not local, get from server
             try {
                 const response = await fetch(`/api/test/metrics/${sessionId}`);
                 if (!response.ok) throw new Error(`Failed to fetch metrics for session ${sessionId}`);
@@ -331,12 +390,28 @@
             let listHTML = '';
             sessions.forEach(session => {
                 const isActive = session.id === activeSessionId;
+                const isLocal = session.isLocal;
+
                 listHTML += `
                     <div class="session-item ${isActive ? 'active' : ''}" 
                          data-session-id="${session.id}" 
-                         onclick="selectSession('${session.id}')">
-                        <div style="font-weight: 500;">${session.name || 'Unnamed Session'}</div>
-                        <div style="font-size: 12px; opacity: 0.7; margin-top: 4px;">ID: ${session.id.substring(0, 8)}...</div>
+                         onclick="selectSession('${session.id}', event)">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: 500;">${session.name || 'Unnamed Session'}</div>
+                                <div style="font-size: 12px; opacity: 0.7; margin-top: 4px;">
+                                    ID: ${session.id.substring(0, 8)}...
+                                    ${isLocal ? '<span style="color: var(--primary-light); margin-left: 5px;">(Imported)</span>' : ''}
+                                </div>
+                            </div>
+                            ${isLocal ? `
+                                <button class="remove-session-btn" 
+                                        onclick="removeSession('${session.id}', event)"
+                                        style="background: transparent; border: none; color: #ff4757; cursor: pointer; font-size: 18px; padding: 5px;">
+                                    ×
+                                </button>
+                            ` : ''}
+                        </div>
                     </div>
                 `;
             });
@@ -355,6 +430,11 @@
                     <h2>${session.name || 'Unnamed Session'}</h2>
                     <p>Session ID: ${session.id}</p>
                     <p>Created: ${new Date(session.created_at).toLocaleString()}</p>
+                    <div class="action-buttons" style="margin-top: 15px;">
+                        <button class="action-button download-btn" onclick="downloadSession('${session.id}')">
+                            Download Session
+                        </button>
+                    </div>
             `;
 
             // Add metrics if available
@@ -484,8 +564,13 @@
             }
         }
 
-        // Handle session selection
-        function selectSession(sessionId) {
+        // Handle session selection - updated to prevent removal button clicks from triggering selection
+        function selectSession(sessionId, event) {
+            // If click was on the remove button, don't select the session
+            if (event && event.target.classList.contains('remove-session-btn')) {
+                return;
+            }
+
             activeSessionId = sessionId;
             refreshSessionDetails();
 
@@ -513,6 +598,15 @@
                 activeSessionId = null;
                 document.getElementById('session-details').innerHTML =
                     '<div class="no-sessions">Select a session from the sidebar</div>';
+
+                // Hide the chart container
+                document.getElementById('distribution-chart-container').style.display = 'none';
+
+                // Reset the chart if it exists
+                if (distributionChart) {
+                    distributionChart.destroy();
+                    distributionChart = null;
+                }
             }
         }
 
@@ -571,6 +665,140 @@
 
         // Initialize when the page loads
         window.onload = initDashboard;
+
+        // Download session data as JSON
+        async function downloadSession(sessionId) {
+            try {
+                const metrics = await fetchMetrics(sessionId);
+                if (!metrics) throw new Error('No metrics available');
+
+                // Get session details
+                const sessions = await fetchSessions();
+                const session = sessions.find(s => s.id === sessionId);
+                if (!session) throw new Error('Session not found');
+
+                // Combine session info and metrics
+                const exportData = {
+                    session: session,
+                    metrics: metrics
+                };
+
+                // Create download file
+                const dataStr = JSON.stringify(exportData, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+
+                // Create download link and trigger it
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `session-${session.id.substring(0, 8)}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                console.error('Error downloading session:', error);
+                alert('Failed to download session data');
+            }
+        }
+
+        // Upload session data from JSON file
+        async function uploadSession(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            try {
+                const fileContent = await readFileAsText(file);
+                const data = JSON.parse(fileContent);
+
+                if (!data.session || !data.metrics) {
+                    throw new Error('Invalid session data format');
+                }
+
+                console.log("Importing session locally:", data.session.id);
+
+                // Mark as a local import
+                const localSession = {
+                    ...data.session,
+                    isLocal: true,
+                    metrics: data.metrics  // Store metrics with the session object
+                };
+
+                // Save to localStorage
+                const existingSessions = getLocalSessions();
+
+                // Check if session already exists (by ID)
+                const sessionIndex = existingSessions.findIndex(s => s.id === localSession.id);
+
+                if (sessionIndex >= 0) {
+                    // Update existing session
+                    existingSessions[sessionIndex] = localSession;
+                } else {
+                    // Add new session
+                    existingSessions.push(localSession);
+                }
+
+                // Save back to localStorage
+                localStorage.setItem('importedSessions', JSON.stringify(existingSessions));
+
+                // Refresh dashboard to show the new session
+                await updateDashboard();
+            } catch (error) {
+                console.error('Error uploading session:', error);
+                alert(`Failed to import session: ${error.message}`);
+            }
+
+            // Reset file input
+            event.target.value = '';
+        }
+
+        // Helper function to read file
+        function readFileAsText(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = e => reject(e);
+                reader.readAsText(file);
+            });
+        }
+
+        // Remove local session
+        function removeSession(sessionId, event) {
+            // Stop event propagation to prevent session selection
+            event.stopPropagation();
+
+            try {
+                // Get current sessions from localStorage
+                const localSessions = getLocalSessions();
+
+                // Filter out the session to remove
+                const updatedSessions = localSessions.filter(s => s.id !== sessionId);
+
+                // Save back to localStorage
+                localStorage.setItem('importedSessions', JSON.stringify(updatedSessions));
+
+                // If the removed session was active, reset active session
+                if (sessionId === activeSessionId) {
+                    activeSessionId = null;
+                    document.getElementById('session-details').innerHTML =
+                        '<div class="no-sessions">Select a session from the sidebar</div>';
+
+                    // Immediately hide chart container and destroy chart
+                    document.getElementById('distribution-chart-container').style.display = 'none';
+                    if (distributionChart) {
+                        distributionChart.destroy();
+                        distributionChart = null;
+                    }
+                }
+
+                // Refresh the dashboard
+                updateDashboard();
+
+            } catch (error) {
+                console.error('Error removing session:', error);
+                alert('Failed to remove session');
+            }
+        }
     </script>
 </body>
 

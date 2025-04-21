@@ -119,11 +119,18 @@ impl RateTestStorage {
         let mut distribution_vec: Vec<TimeBucket> = distribution
             .into_iter()
             .map(|(timestamp, count)| {
-                // Calculate per-bucket rate limit
+                // Calculate per-bucket rate limit based on cumulative requests
                 let bucket_rate_limit = if let Some(first) = first_time {
                     let duration = timestamp.signed_duration_since(first);
                     let seconds = duration.num_seconds().max(1) as f64;
-                    session_requests.len() as f64 / seconds
+                    
+                    // Count requests up to this bucket's timestamp
+                    let requests_till_now = session_requests
+                        .iter()
+                        .filter(|r| r.timestamp <= timestamp)
+                        .count() as f64;
+                        
+                    requests_till_now / seconds
                 } else {
                     0.0
                 };
