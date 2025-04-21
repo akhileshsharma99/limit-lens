@@ -1,6 +1,8 @@
-# limit-lens Rust Client
+# Limit Lens Rust Client
 
 A Rust client library for interacting with the limit-lens API - a service for testing and visualizing rate limiters in real-time.
+
+This client is for [limit-lens](https://github.com/akhileshsharma99/limit-lens).
 
 ## Installation
 
